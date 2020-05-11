@@ -26,6 +26,8 @@ cmdlParser.add_argument("--conditionsFile",
 cmdlParser.add_argument("--copyTo",
                         nargs = "?",
                         help = "The abs path to a directory to which to copy the selected segmentation and orig file. The copied files will be renamed to have a unique recognizable name.")
+cmdlParser.add_argument("--tabulate",
+                        help = "Store results as a tab-delimited table.")
 
 
 import os, shutil
@@ -64,10 +66,39 @@ class SelectSegmentationsMain(object):
 
 
   def printSegmentationRecords(self, segmentationRecords):
-    for i, segRec in enumerate(segmentationRecords):
-      print(str(i).zfill(3), segRec.study, segRec.series, \
-            segRec.canonicalType, segRec.segmentedStructure, "\"", segRec.sourceSeriesDescription, "\"", \
-            "\n   \'-->", "Mean:", segRec.measurements["Mean"] if segRec.measurements is not None else "None")
+    if not self._args.tabulate:
+      print("Total segs: "+str(len(segmentationRecords)))
+      for i, segRec in enumerate(segmentationRecords):
+        print(str(i).zfill(3), segRec.study, segRec.series, \
+              segRec.canonicalType, segRec.segmentedStructure, "\"", segRec.sourceSeriesDescription, "\"", \
+              "\n   \'-->", "Mean:", segRec.measurements["Mean"] if segRec.measurements is not None else "None")
+    else:
+      print("Total segs: "+str(len(segmentationRecords)))
+      with open(self._args.tabulate, "w") as outputTableFile:
+        # iterate over all segmentations and get a superset of all measurements
+        measurementTypes = set()
+        for i, segRec in enumerate(segmentationRecords):
+          if segRec.measurements is not None:
+            for measurementType in segRec.measurements.keys():
+              measurementTypes.add(measurementType)
+
+        headerItems = ["Study", "SeriesNumber", "SeriesDescription", "Series type", "Segmented structure"]
+        headerItems = headerItems + list(measurementTypes)
+        outputTableFile.write("\t".join(headerItems)+"\n")
+        for i, segRec in enumerate(segmentationRecords):
+          print(segRec.study)
+          if segRec.measurements is not None:
+            outputTableFile.write("\t".join([segRec.study, segRec.series, segRec.sourceSeriesDescription, \
+              segRec.canonicalType, segRec.segmentedStructure]))
+            for measurementType in list(measurementTypes):
+              if measurementType in segRec.measurements.keys():
+                outputTableFile.write("\t"+str(segRec.measurements[measurementType]))
+              else:
+                outputTableFile.write("\tNA")
+            outputTableFile.write("\n")
+          else:
+            print("No measurements")
+
 
 
   def copySegAndOrigFiles(self, segmentationRecords, destDir):
