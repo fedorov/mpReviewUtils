@@ -8,7 +8,7 @@ class ConditionsParser(object):
 
   def __init__(self, args):
     self._args = args
-    self._cmdlArgToPropertyNameMap = {"readers": "reader", 
+    self._cmdlArgToPropertyNameMap = {"readers": "reader",
                                       "structures": "segmentedStructure",
                                       "studies": "study",
                                       "series": "series",
@@ -37,10 +37,6 @@ class ConditionsParser(object):
   def _convertToFilterConditions(self, config):
     filterConditions = {}
     for key, value in config.items():
-      if self._cmdlArgToPropertyNameMap.has_key(key) and value is not None:
+      if key in self._cmdlArgToPropertyNameMap.keys() and value is not None:
         filterConditions[self._cmdlArgToPropertyNameMap[key]] = value
     return filterConditions
-
-
-
-

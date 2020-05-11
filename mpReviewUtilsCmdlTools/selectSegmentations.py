@@ -4,14 +4,14 @@ sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import argparse
 # setup supported/required command line arguments
 cmdlParser = argparse.ArgumentParser(description = "Select all segmentations that match the provided conditions.")
-cmdlParser.add_argument("dir", 
+cmdlParser.add_argument("dir",
                         help = "The abs path to the root data directory to parse")
 cmdlParser.add_argument("--studies",
                         nargs = "*",
                         help = "List of all studies that should be selected.")
 cmdlParser.add_argument("--series",
                         nargs = "*",
-                        help = "List of all series that should be selected.")                        
+                        help = "List of all series that should be selected.")
 cmdlParser.add_argument("--types",
                         nargs = "*",
                         help = "List of all series/canonical types that should be selected")
@@ -52,7 +52,7 @@ class SelectSegmentationsMain(object):
     self.printSegmentationRecords(selectedSegRecs)
     if (self._args.copyTo):
       self.copySegAndOrigFiles(selectedSegRecs, self._args.copyTo)
-  
+
 
   def getSelectedSegmentationRecords(self):
     segmentationRecords = self._mpReviewParser.getSegmentationRecords()
@@ -65,9 +65,9 @@ class SelectSegmentationsMain(object):
 
   def printSegmentationRecords(self, segmentationRecords):
     for i, segRec in enumerate(segmentationRecords):
-      print str(i).zfill(3), segRec.study, segRec.series, \
-            segRec.canonicalType, segRec.segmentedStructure, \
-            "\n   \'-->", "Mean:", segRec.measurements["Mean"] if segRec.measurements is not None else "None"
+      print(str(i).zfill(3), segRec.study, segRec.series, \
+            segRec.canonicalType, segRec.segmentedStructure, "\"", segRec.sourceSeriesDescription, "\"", \
+            "\n   \'-->", "Mean:", segRec.measurements["Mean"] if segRec.measurements is not None else "None")
 
 
   def copySegAndOrigFiles(self, segmentationRecords, destDir):
@@ -92,5 +92,3 @@ if __name__ == "__main__":
   args = cmdlParser.parse_args()
   main = SelectSegmentationsMain(args)
   main.run()
-
-

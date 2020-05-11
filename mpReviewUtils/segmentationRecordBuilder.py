@@ -2,6 +2,8 @@ import os
 import json
 import SimpleITK
 import numpy
+import glob
+import pydicom
 from .segmentationRecord import SegmentationRecord
 
 class SegmentationRecordBuilder(object):
@@ -17,7 +19,7 @@ class SegmentationRecordBuilder(object):
       return self._createSegmentationRecord()
     else:
       return None
-  
+
 
   def isValid(self):
     if (self.study is not None and
@@ -27,25 +29,26 @@ class SegmentationRecordBuilder(object):
       return True
     else:
       return False
-    
+
 
   #----------------------------------------------------------------------------
   # Internal methods
   #----------------------------------------------------------------------------
   def _createSegmentationRecord(self):
     segRec = SegmentationRecord(self._getPatientName(),
-                                self.study, 
-                                self.series, 
+                                self.study,
+                                self.series,
                                 self._getCanonicalType(),
                                 self._getSegmentedStructure(),
                                 self._getLabelValue(),
                                 self._getReaderName(),
                                 self.segLabelFileName,
-                                self._getOrigFileName(), 
+                                self._getOrigFileName(),
                                 self._getDicomFolder(),
-                                self._getMeasurments())
+                                self._getMeasurments(),
+                                self._getSourceSeriesDescription())
     return segRec
-  
+
   def _getPatientName(self):
     patientName = self.study.split("_")[0]
     return patientName
@@ -62,7 +65,7 @@ class SegmentationRecordBuilder(object):
       return segmentedStructure
     except Exception:
       return None
-  
+
   def _getLabelValue(self):
     image = SimpleITK.ReadImage(self.segLabelFileName)
     npPixelArray = SimpleITK.GetArrayViewFromImage(image)
@@ -91,14 +94,14 @@ class SegmentationRecordBuilder(object):
       return self._getCanonicalTypeFromJsonFile(canonicalFileName)
     else:
       return None
-  
+
   def _getCanonicalFileName(self):
     canonicalFileName = os.path.normpath(os.path.join(self._getSeriesDir(), "Canonical", self.series + ".json"))
     if os.path.isfile(canonicalFileName):
       return canonicalFileName
     else:
       return None
-  
+
   def _getCanonicalTypeFromJsonFile(self, jsonFileName):
     with open(jsonFileName, "r") as jsonFile:
       attributes = json.load(jsonFile)
@@ -113,7 +116,7 @@ class SegmentationRecordBuilder(object):
       return dicomFolder
     else:
       return None
-  
+
   def _getMeasurments(self):
     measurementsFileName = self._getMeasurementsFileName()
     if os.path.isfile(measurementsFileName):
@@ -136,6 +139,11 @@ class SegmentationRecordBuilder(object):
     segDir = os.path.dirname(self.segLabelFileName)
     return os.path.normpath(os.path.join(segDir, ".."))
 
-
-
-
+  def _getSourceSeriesDescription(self):
+    dicomDir = os.path.normpath(os.path.join(self._getSeriesDir(), "DICOM"))
+    dicomFiles = glob.glob(os.path.join(dicomDir,"*.dcm"))
+    if len(dicomFiles):
+      dcm = pydicom.read_file(dicomFiles[0])
+      return dcm.SeriesDescription
+    else:
+      return ""

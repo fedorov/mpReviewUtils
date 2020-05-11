@@ -9,12 +9,13 @@ from .segmentationRecordBuilder import SegmentationRecordBuilder
 
 class SeriesParser(SegmentationRecordsParserBase):
   """
-  This parser goes through an mpReview series sub-directory structure and collects 
-  all links to segmentations, meta information for each segmentation as well  
+  This parser goes through an mpReview series sub-directory structure and collects
+  all links to segmentations, meta information for each segmentation as well
   as the link to the corresponding original image and measurments file.
   All info for each segmentation is stored in a SegmentationRecord.
   """
   def __init__(self, seriesDirectory, parentStudyName):
+    print("Parsing "+seriesDirectory+" "+parentStudyName)
     self._baseDirectory = seriesDirectory
     self._seriesName = self._getSeriesName(seriesDirectory)
     self._parentStudyName = parentStudyName
@@ -50,7 +51,7 @@ class SeriesParser(SegmentationRecordsParserBase):
     else:
       return False
 
-  
+
   def _groupSegmentationFileNames(self, segFileNames):
     """Group by reader and structure as filename prefix"""
     groups = defaultdict(list)
@@ -75,7 +76,7 @@ class SeriesParser(SegmentationRecordsParserBase):
     for fn in fileNames:
       segRecords.append(self._createSegmetationRecord(fn))
     return segRecords
-  
+
 
   def _createSegmetationRecord(self, segFile):
     segRecBuilder = SegmentationRecordBuilder()
@@ -84,9 +85,6 @@ class SeriesParser(SegmentationRecordsParserBase):
     segRecBuilder.segLabelFileName = segFile
     return segRecBuilder.build()
 
-  
+
   def _getSeriesName(self, seriesDirectory):
     return os.path.basename(os.path.normpath(seriesDirectory))
-
-
-
